@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>수치해석 시험 대비 학습 페이지</title>
+<style>
+:root{
+  --bg:#f5f6fa;--card:#fff;--text:#1f2430;--muted:#5b6475;--accent:#2f5bd8;
+  --accent-soft:#e8eefc;--line:#dde1ea;--ok:#12805c;--bad:#b4360b;
+  --formula-bg:#fff7e0;--formula-border:#f0b429;
+}
+*{box-sizing:border-box} html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--text);font-family:"Malgun Gothic","Apple SD Gothic Neo","Noto Sans KR",system-ui,sans-serif;line-height:1.7}
+button,input{font:inherit}
+.wrap{max-width:920px;margin:auto}
+header{background:var(--accent);color:#fff;padding:28px 16px 22px}
+header h1{margin:0 0 8px;font-size:clamp(1.45rem,5vw,2rem)}
+header p{margin:0;opacity:.96}
+.topnav{position:sticky;top:0;z-index:20;background:#fff;border-bottom:1px solid var(--line);padding:10px 16px;box-shadow:0 2px 6px #0000000d}
+.topnav .wrap{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.topnav a{text-align:center;text-decoration:none;background:var(--accent-soft);color:var(--accent);font-weight:700;padding:9px 6px;border-radius:8px}
+main{padding:18px 16px}
+.card,.panel,.topic{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px;margin-bottom:20px}
+.topic,.panel{scroll-margin-top:110px}
+h2{margin:0 0 12px;border-left:5px solid var(--accent);padding-left:10px;font-size:1.3rem}
+h3{margin:20px 0 8px;color:var(--accent);font-size:1.05rem}
+.muted{color:var(--muted);font-size:.92rem}
+.start-guide{border:2px solid #b9c9f7;background:#f8faff}
+.start-steps{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:10px}
+.start-step{background:#fff;border:1px solid #dbe3fb;border-radius:10px;padding:12px}
+.start-step b{display:block;color:var(--accent);margin-bottom:3px}
+.search-row{display:flex;gap:8px}
+.search{flex:1;min-width:0;padding:11px 13px;border:1px solid var(--line);border-radius:10px;background:#fbfcfe}
+.btn{border:0;border-radius:8px;padding:9px 13px;cursor:pointer;font-weight:700;background:var(--accent);color:#fff}
+.btn.sub{background:#e9edf5;color:#2c3547}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}
+.chip{border:1px solid var(--line);background:#fff;padding:7px 12px;border-radius:999px;cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--accent);color:#fff;border-color:var(--accent)}
+.quick{display:flex;flex-wrap:wrap;gap:6px 14px;margin-top:8px;font-size:.92rem}
+.quick a{color:var(--accent)}
+.progress{height:12px;background:#e8edf5;border-radius:999px;overflow:hidden;margin:8px 0 4px}
+.progress>div{height:100%;width:0;background:var(--ok);transition:.2s}
+.formula{position:relative;background:var(--formula-bg);border:2px solid var(--formula-border);border-radius:10px;padding:12px 14px;margin:10px 0}
+.formula.starred{box-shadow:0 0 0 3px #d9770633}
+.formula .name{font-weight:700;padding-right:80px}
+.eq{font-family:"Cambria Math","Times New Roman",serif;font-size:1.06rem;line-height:1.9}
+.star{position:absolute;right:8px;top:8px;border:1px solid #d9b25b;background:#fff;border-radius:999px;padding:3px 9px;cursor:pointer;color:#8a5a00}
+.star[aria-pressed="true"]{background:#d97706;color:#fff}
+.example{border:1px dashed var(--accent);border-radius:10px;padding:14px;background:#fbfcff}
+.toggle{margin-top:8px}
+.solution{margin-top:10px;padding:12px;background:#f1faf6;border:1px solid #bfe3d2;border-radius:8px}
+.solution[hidden]{display:none}
+.answer{margin-top:8px;background:var(--ok);color:#fff;padding:8px 10px;border-radius:6px;font-weight:700}
+.q-item{border:1px solid var(--line);border-radius:10px;padding:12px;margin:10px 0;scroll-margin-top:110px}
+.q-item.solved{border-color:#8fd0b4;background:#f1faf6}
+.q-row{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+.q-row input{width:160px;max-width:100%;padding:8px;border:1px solid var(--line);border-radius:8px}
+.feedback{min-height:1.4em;margin-top:7px;font-weight:700}
+.feedback.ok{color:var(--ok)}.feedback.bad{color:var(--bad)}.feedback.info{color:var(--muted)}
+.extra{font-size:.93rem;margin-top:5px}
+table{width:100%;border-collapse:collapse;font-size:.92rem}
+th,td{border:1px solid var(--line);padding:7px;vertical-align:top}th{background:#eef1f8}
+.fav-item,.review-item{border:1px solid var(--line);border-radius:9px;padding:9px 11px;margin:8px 0}
+.review-item{display:flex;gap:8px;align-items:center;justify-content:space-between}
+.review-item span{flex:1}
+.check-row{display:flex;gap:10px;padding:8px 10px;margin:7px 0;background:#f8fafc;border-radius:8px}
+.check-row.checked{background:#effaf2}
+.empty{text-align:center;color:var(--muted);padding:18px}
+.is-hidden{display:none!important}
+.notice{padding:9px 12px;background:#fff8e8;border:1px solid #f1d28d;border-radius:9px;font-size:.92rem}
+footer{text-align:center;padding:8px 16px 38px}
+#toTop{background:#333b4f;color:white;border:0;border-radius:999px;padding:11px 24px;font-weight:700}
+@media(max-width:620px){
+ .topnav .wrap{grid-template-columns:repeat(2,1fr)}
+ .start-steps{grid-template-columns:1fr}
+ .search-row{flex-direction:column}
+}
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <h1>수치해석 시험 대비 학습 페이지</h1>
+    <p>공식 확인 → 예제 풀이 → 자가 점검 → 오답 복습 순서로 시험 전 핵심 내용을 빠르게 확인할 수 있습니다.</p>
+  </div>
+</header>
+
+<nav class="topnav" aria-label="주제 이동">
+ <div class="wrap">
+  <a href="#roots">방정식의 근</a><a href="#linear">연립방정식</a><a href="#interp">보간법</a><a href="#calculus">수치미분·적분</a>
+ </div>
+</nav>
+
+<main class="wrap">
+
+<section class="card start-guide" id="startGuide">
+ <h2>처음이라면 이렇게 사용하세요</h2>
+ <p class="muted">설명 없이 처음 사용하는 사람도 시작 순서를 알 수 있도록 3단계로 정리했습니다.</p>
+ <div class="start-steps">
+  <div class="start-step"><b>1. 단원 선택</b>위의 주제 버튼이나 아래 검색을 이용해 공부할 단원을 찾습니다.</div>
+  <div class="start-step"><b>2. 공식·예제 확인</b>핵심 공식을 읽고 예제를 직접 푼 뒤 ‘풀이 보기’로 확인합니다.</div>
+  <div class="start-step"><b>3. 점검·복습</b>자가 점검 문제를 풀고 틀린 문제는 ‘다시 볼 문제’에서 복습합니다.</div>
+ </div>
+</section>
+
+<section class="card" id="tools">
+ <div class="search-row">
+  <input class="search" id="searchInput" type="search" placeholder="검색: 뉴턴, 피벗, 라그랑주, Simpson…" aria-label="주제 검색">
+  <button class="btn sub" id="clearSearch" type="button">검색·선택 초기화</button>
+ </div>
+ <div class="chips" id="chips">
+  <button class="chip" type="button" data-topic="all" aria-pressed="true">전체</button>
+  <button class="chip" type="button" data-topic="roots" aria-pressed="false">방정식의 근</button>
+  <button class="chip" type="button" data-topic="linear" aria-pressed="false">연립방정식</button>
+  <button class="chip" type="button" data-topic="interp" aria-pressed="false">보간법</button>
+  <button class="chip" type="button" data-topic="calculus" aria-pressed="false">수치미분·적분</button>
+ </div>
+ <div id="filterMsg" class="muted" aria-live="polite">전체 4개 주제를 표시하고 있습니다.</div>
+ <div class="quick"><a href="#favPanel">★ 중요 공식</a><a href="#compare">방법 비교표</a><a href="#reviewPanel">🔖 다시 볼 문제</a><a href="#checklist">시험 전 체크리스트</a></div>
+ <h3>학습 현황</h3>
+ <div class="progress"><div id="progBar"></div></div>
+ <div class="muted" id="progText">예제 확인 0 / 4 · 점검 문제 정답 0 / 8</div>
+ <div class="notice" id="saveNotice">학습 기록은 이 브라우저에 자동 저장됩니다. 같은 브라우저에서 다시 열면 중요 공식, 정답 기록, 다시 볼 문제, 체크리스트가 복원됩니다.</div>
+</section>
+
+<section class="panel" id="favPanel">
+ <h2>★ 중요 공식 모음</h2><p class="muted">공식 오른쪽의 ‘☆ 중요’를 누르면 여기에 모입니다.</p>
+ <div id="favList"></div><div class="empty" id="favEmpty">아직 중요 표시한 공식이 없습니다.</div>
+</section>
+
+<section class="panel" id="compare">
+ <h2>방법 한눈에 비교</h2>
+ <table><thead><tr><th>방법</th><th>특징</th><th>주의점</th></tr></thead><tbody>
+ <tr><td>이분법</td><td>구간을 절반씩 축소</td><td>f(a)f(b)&lt;0 필요</td></tr>
+ <tr><td>뉴턴법</td><td>빠른 2차 수렴</td><td>초기값·미분값에 민감</td></tr>
+ <tr><td>가우스 소거법</td><td>전진 소거 후 후진 대입</td><td>피벗이 0이면 행 교환</td></tr>
+ <tr><td>라그랑주 보간</td><td>n+1점으로 n차 다항식</td><td>고차에서 진동 가능</td></tr>
+ <tr><td>중심 차분</td><td>오차 O(h²)</td><td>분모가 2h</td></tr>
+ <tr><td>Simpson 1/3</td><td>오차 O(h⁴)</td><td>소구간 n은 짝수</td></tr>
+ </tbody></table>
+</section>
+
+<div class="empty is-hidden" id="emptyState">조건에 맞는 주제가 없습니다. 검색어를 지우거나 ‘검색·선택 초기화’를 눌러 보세요.</div>
+
+<section class="topic" id="roots" data-keywords="방정식 근 이분법 뉴턴 newton bisection 반복 수렴 허용오차">
+ <h2>1. 방정식의 근</h2>
+ <h3>핵심 개념</h3><p>f(x)=0의 근을 반복 계산으로 근사합니다. 이분법은 안정적이고, 뉴턴법은 빠르지만 초기값에 민감합니다.</p>
+ <h3>반드시 기억할 공식</h3>
+ <div class="formula"><div class="name">이분법</div><div class="eq">c=(a+b)/2, &nbsp; 오차 ≤ (b−a)/2ⁿ</div><div class="eq">n ≥ log₂((b−a)/ε)</div></div>
+ <div class="formula"><div class="name">뉴턴법</div><div class="eq">xₙ₊₁=xₙ−f(xₙ)/f′(xₙ)</div></div>
+ <h3>예제</h3><div class="example"><b>f(x)=x²−2, x₀=1에서 뉴턴법을 두 번 반복하시오.</b><br>
+ <button class="btn toggle" type="button" aria-controls="sol1" aria-expanded="false">풀이 보기</button>
+ <div class="solution" id="sol1" hidden>x₁=1.5, x₂=1.416667<div class="answer">답: x₂≈1.4167</div></div></div>
+ <div class="quiz" data-topic="roots"></div>
+ <h3>자주 하는 실수</h3><ul><li>이분법의 부호 조건을 확인하지 않는다.</li><li>반복 횟수를 올림하지 않는다.</li><li>뉴턴법에서 f′가 0에 가까운 초기값을 사용한다.</li></ul>
+</section>
+
+<section class="topic" id="linear" data-keywords="연립방정식 가우스 소거법 피벗 승수 전진소거 후진대입 행렬">
+ <h2>2. 연립방정식</h2>
+ <h3>핵심 개념</h3><p>확대행렬을 전진 소거해 상삼각형으로 만든 뒤 후진 대입합니다.</p>
+ <h3>반드시 기억할 공식</h3>
+ <div class="formula"><div class="name">전진 소거</div><div class="eq">mᵢₖ=aᵢₖ/aₖₖ, &nbsp; Rᵢ←Rᵢ−mᵢₖRₖ</div></div>
+ <div class="formula"><div class="name">후진 대입</div><div class="eq">xᵢ=(bᵢ−Σaᵢⱼxⱼ)/aᵢᵢ</div></div>
+ <h3>예제</h3><div class="example"><b>2x+y=5, 4x+3y=11을 푸시오.</b><br>
+ <button class="btn toggle" type="button" aria-controls="sol2" aria-expanded="false">풀이 보기</button>
+ <div class="solution" id="sol2" hidden>R₂−2R₁ → y=1, 이후 x=2<div class="answer">답: x=2, y=1</div></div></div>
+ <div class="quiz" data-topic="linear"></div>
+ <h3>자주 하는 실수</h3><ul><li>피벗이 0인데 그대로 나눈다.</li><li>행 연산을 우변에 적용하지 않는다.</li></ul>
+</section>
+
+<section class="topic" id="interp" data-keywords="보간법 선형 보간 라그랑주 interpolation lagrange">
+ <h2>3. 보간법</h2>
+ <h3>핵심 개념</h3><p>주어진 점 사이의 값을 다항식으로 근사합니다.</p>
+ <h3>반드시 기억할 공식</h3>
+ <div class="formula"><div class="name">선형 보간</div><div class="eq">y≈y₀+(y₁−y₀)/(x₁−x₀)·(x−x₀)</div></div>
+ <div class="formula"><div class="name">라그랑주 보간</div><div class="eq">Pₙ(x)=Σ yᵢLᵢ(x)</div></div>
+ <h3>예제</h3><div class="example"><b>(1,3), (3,7) 사이에서 x=2의 선형 보간값을 구하시오.</b><br>
+ <button class="btn toggle" type="button" aria-controls="sol3" aria-expanded="false">풀이 보기</button>
+ <div class="solution" id="sol3" hidden>3+(7−3)/(3−1)·(2−1)=5<div class="answer">답: 5</div></div></div>
+ <div class="quiz" data-topic="interp"></div>
+ <h3>자주 하는 실수</h3><ul><li>분모와 분자의 절점 순서를 섞는다.</li><li>n+1개의 점이면 n차라는 점을 혼동한다.</li></ul>
+</section>
+
+<section class="topic" id="calculus" data-keywords="수치미분 수치적분 전진차분 중심차분 사다리꼴 simpson 심프슨 h">
+ <h2>4. 수치미분·적분</h2>
+ <h3>핵심 개념</h3><p>도함수는 함수값 차이로, 적분은 구간별 넓이의 합으로 근사합니다.</p>
+ <h3>반드시 기억할 공식</h3>
+ <div class="formula"><div class="name">전진 차분</div><div class="eq">f′(x)≈[f(x+h)−f(x)]/h</div></div>
+ <div class="formula"><div class="name">중심 차분</div><div class="eq">f′(x)≈[f(x+h)−f(x−h)]/(2h)</div></div>
+ <div class="formula"><div class="name">사다리꼴</div><div class="eq">T=(h/2)[f₀+2(f₁+…+fₙ₋₁)+fₙ]</div></div>
+ <div class="formula"><div class="name">Simpson 1/3</div><div class="eq">S=(h/3)[f₀+4(f₁+f₃+…)+2(f₂+f₄+…)+fₙ]</div></div>
+ <h3>예제</h3><div class="example"><b>f(x)=x², x=1, h=0.5에서 중심 차분으로 f′(1)을 구하시오.</b><br>
+ <button class="btn toggle" type="button" aria-controls="sol4" aria-expanded="false">풀이 보기</button>
+ <div class="solution" id="sol4" hidden>(2.25−0.25)/(1)=2<div class="answer">답: 2</div></div></div>
+ <div class="quiz" data-topic="calculus"></div>
+ <h3>자주 하는 실수</h3><ul><li>중심 차분의 분모를 h로 쓴다.</li><li>Simpson에서 n이 짝수인지 확인하지 않는다.</li></ul>
+</section>
+
+<section class="panel" id="reviewPanel">
+ <h2>🔖 다시 볼 문제</h2><p class="muted">오답이거나 직접 표시한 문제가 모입니다.</p>
+ <div id="reviewList"></div><div class="empty" id="reviewEmpty">아직 다시 볼 문제가 없습니다.</div>
+</section>
+
+<section class="panel" id="checklist">
+ <h2>시험 전 체크리스트</h2>
+ <label class="check-row"><input class="ck" type="checkbox"><span>이분법 반복 횟수와 뉴턴법 공식을 적용할 수 있다.</span></label>
+ <label class="check-row"><input class="ck" type="checkbox"><span>가우스 소거법의 전진 소거·후진 대입을 할 수 있다.</span></label>
+ <label class="check-row"><input class="ck" type="checkbox"><span>선형 보간과 라그랑주 보간을 구분할 수 있다.</span></label>
+ <label class="check-row"><input class="ck" type="checkbox"><span>전진·중심 차분을 구분할 수 있다.</span></label>
+ <label class="check-row"><input class="ck" type="checkbox"><span>사다리꼴과 Simpson 공식을 적용할 수 있다.</span></label>
+ <div class="progress"><div id="ckBar"></div></div><div class="muted" id="ckText">0 / 5 완료</div>
+ <button class="btn sub" id="ckReset" type="button">체크 초기화</button>
+ <button class="btn sub" id="allReset" type="button">모든 학습 기록 초기화</button>
+</section>
+</main>
+
+<footer><button id="toTop" type="button">맨 위로</button><br><small>시험 전에는 반드시 강의자료·교재의 공식과 비교하여 확인하세요.</small></footer>
+
+<script>
+(function(){
+ const QUIZ=[
+  {id:'r1',topic:'roots',q:'f(x)=x²−2, x₀=2일 때 뉴턴법 x₁은?',ans:1.5,tol:.005,hint:'x₁=x₀−f(x₀)/f′(x₀)',exp:'2−(4−2)/4=1.5'},
+  {id:'r2',topic:'roots',q:'[0,8]에서 이분법 오차 한계 0.5 이하에 필요한 최소 반복 횟수는?',ans:4,tol:.001,hint:'8/2ⁿ≤0.5',exp:'2ⁿ≥16 → n=4'},
+  {id:'l1',topic:'linear',q:'2x+y=5, 4x+3y=11에서 승수 m₂₁은?',ans:2,tol:.001,hint:'a₂₁/a₁₁',exp:'4/2=2'},
+  {id:'l2',topic:'linear',q:'2x+y=5, 4x+3y=11의 x는?',ans:2,tol:.001,hint:'R₂−2R₁',exp:'y=1 → x=2'},
+  {id:'i1',topic:'interp',q:'(1,3),(3,7)을 선형 보간해 x=2의 값은?',ans:5,tol:.001,hint:'선형 보간 공식',exp:'3+2=5'},
+  {id:'i2',topic:'interp',q:'x₀=0,x₁=1,x₂=2일 때 L₁(1.5)는?',ans:.75,tol:.001,hint:'(x−0)(x−2)/((1−0)(1−2))',exp:'0.75'},
+  {id:'c1',topic:'calculus',q:'f(x)=x³, x=2, h=0.5의 중심 차분값은?',ans:12.25,tol:.005,hint:'[f(2.5)−f(1.5)]/(1)',exp:'(15.625−3.375)=12.25'},
+  {id:'c2',topic:'calculus',q:'∫₀¹x²dx를 n=2 사다리꼴로 근사한 값은?',ans:.375,tol:.0005,hint:'h=.5',exp:'.25[0+2(.25)+1]=.375'}
+ ];
+ const KEY='numerical-study-v5';
+ let state={solved:{},marked:{},viewed:{},stars:{},checks:[]};
+ try{ const s=JSON.parse(localStorage.getItem(KEY)||'null'); if(s) state=Object.assign(state,s); }catch(e){}
+ function save(){try{localStorage.setItem(KEY,JSON.stringify(state));}catch(e){}}
+ function parseAns(s){
+  s=String(s).trim().replace(/,/g,'.'); if(!s)return 'empty';
+  const m=s.match(/^(-?\d+(?:\.\d+)?)\s*\/\s*(-?\d+(?:\.\d+)?)$/);
+  let v=m?(+m[2]===0?NaN:+m[1]/+m[2]):(/^[-+]?(?:\d+\.?\d*|\.\d+)$/.test(s)?+s:NaN);
+  return Number.isFinite(v)?v:null;
+ }
+ function makeBtn(t,c='btn'){const b=document.createElement('button');b.type='button';b.className=c;b.textContent=t;return b}
+ document.querySelectorAll('.quiz').forEach(box=>{
+  const topic=box.dataset.topic,h=document.createElement('h3');h.textContent='자가 점검 문제';box.appendChild(h);
+  const p=document.createElement('p');p.className='muted';p.textContent='숫자 또는 분수(예: 3/4)로 입력할 수 있습니다.';box.appendChild(p);
+  QUIZ.filter(x=>x.topic===topic).forEach((item,idx)=>{
+   const d=document.createElement('div');d.className='q-item';d.id='q-'+item.id;
+   d.innerHTML='<div><b>문제 '+(idx+1)+'.</b> '+item.q+'</div>';
+   const row=document.createElement('div');row.className='q-row';
+   const inp=document.createElement('input');inp.placeholder='답 입력';inp.inputMode='decimal';
+   const chk=makeBtn('확인'),hint=makeBtn('힌트','btn sub'),show=makeBtn('해설 보기','btn sub'),mark=makeBtn('🔖 다시 볼 문제','btn sub');
+   row.append(inp,chk,hint,show,mark); const fb=document.createElement('div');fb.className='feedback';const ex=document.createElement('div');ex.className='extra';
+   d.append(row,fb,ex);box.appendChild(d);
+   if(state.solved[item.id]) d.classList.add('solved');
+   function check(){
+    const v=parseAns(inp.value);
+    if(v==='empty'){fb.textContent='답을 입력해 주세요.';fb.className='feedback info';return}
+    if(v===null){fb.textContent='숫자 또는 분수 형식으로 입력해 주세요.';fb.className='feedback info';return}
+    if(Math.abs(v-item.ans)<=item.tol){state.solved[item.id]=true;d.classList.add('solved');fb.textContent='정답입니다! ✔';fb.className='feedback ok';ex.textContent='해설: '+item.exp}
+    else{state.marked[item.id]=true;fb.textContent='틀렸습니다. 다시 볼 문제에 추가했습니다.';fb.className='feedback bad'}
+    save();renderReview();updateProgress();
+   }
+   chk.onclick=check; inp.addEventListener('keydown',e=>{if(e.key==='Enter')check()});
+   hint.onclick=()=>ex.textContent='힌트: '+item.hint;
+   show.onclick=()=>ex.textContent='해설: '+item.exp+' (정답: '+item.ans+')';
+   mark.onclick=()=>{state.marked[item.id]=!state.marked[item.id];save();renderReview()};
+  })
+ });
+ document.querySelectorAll('.toggle').forEach(b=>{
+  const box=document.getElementById(b.getAttribute('aria-controls'));
+  if(state.viewed[box.id]){box.hidden=false;b.textContent='풀이 접기';b.setAttribute('aria-expanded','true')}
+  b.onclick=()=>{const open=box.hidden;box.hidden=!open;b.textContent=open?'풀이 접기':'풀이 보기';b.setAttribute('aria-expanded',String(open));if(open)state.viewed[box.id]=true;save();updateProgress()}
+ });
+ document.querySelectorAll('.formula').forEach((f,i)=>{
+  const id='f'+i,s=document.createElement('button');f.dataset.fid=id;s.type='button';s.className='star';
+  const on=!!state.stars[id];s.textContent=on?'★ 중요':'☆ 중요';s.setAttribute('aria-pressed',String(on));f.classList.toggle('starred',on);
+  s.onclick=()=>{state.stars[id]=!state.stars[id];s.textContent=state.stars[id]?'★ 중요':'☆ 중요';s.setAttribute('aria-pressed',String(!!state.stars[id]));f.classList.toggle('starred',!!state.stars[id]);save();renderFavs()};
+  f.appendChild(s);
+ });
+ function renderFavs(){
+  const list=document.getElementById('favList');list.innerHTML='';let n=0;
+  document.querySelectorAll('.formula').forEach(f=>{if(!state.stars[f.dataset.fid])return;n++;const d=document.createElement('div');d.className='fav-item';d.innerHTML='<b>'+f.closest('.topic').querySelector('h2').textContent+' · '+f.querySelector('.name').textContent+'</b>'+[...f.querySelectorAll('.eq')].map(e=>'<div class="eq">'+e.innerHTML+'</div>').join('');list.appendChild(d)});
+  document.getElementById('favEmpty').style.display=n?'none':'block';
+ }
+ function renderReview(){
+  const list=document.getElementById('reviewList');list.innerHTML='';const items=QUIZ.filter(x=>state.marked[x.id]);
+  items.forEach(x=>{const d=document.createElement('div');d.className='review-item';const s=document.createElement('span');s.textContent=x.q;const a=document.createElement('a');a.href='#q-'+x.id;a.textContent='문제로 이동';a.onclick=clearFilters;const rm=makeBtn('제거','btn sub');rm.onclick=()=>{delete state.marked[x.id];save();renderReview()};d.append(s,a,rm);list.appendChild(d)});
+  document.getElementById('reviewEmpty').style.display=items.length?'none':'block';
+ }
+ const topics=[...document.querySelectorAll('.topic')],chips=[...document.querySelectorAll('.chip')],search=document.getElementById('searchInput');let active={};
+ function applyFilter(){
+  const q=search.value.trim().toLowerCase(),keys=Object.keys(active);let shown=0;
+  topics.forEach(t=>{const okTopic=!keys.length||active[t.id],okQ=!q||(t.dataset.keywords+' '+t.textContent).toLowerCase().includes(q),show=okTopic&&okQ;t.classList.toggle('is-hidden',!show);if(show)shown++});
+  chips.forEach(c=>{const t=c.dataset.topic;c.setAttribute('aria-pressed',String(t==='all'?!keys.length:!!active[t]))});
+  document.getElementById('emptyState').classList.toggle('is-hidden',!!shown);
+  document.getElementById('filterMsg').textContent=(q?'검색어 “‘'+search.value.trim()+'” · ':'')+shown+' / '+topics.length+'개 주제를 표시하고 있습니다.';
+ }
+ function clearFilters(){active={};search.value='';applyFilter()}
+ chips.forEach(c=>c.onclick=()=>{const t=c.dataset.topic;if(t==='all')active={};else active[t]?delete active[t]:active[t]=true;applyFilter()});
+ search.oninput=applyFilter;document.getElementById('clearSearch').onclick=clearFilters;
+ document.querySelectorAll('.topnav a').forEach(a=>a.onclick=()=>{const s=document.querySelector(a.getAttribute('href'));if(s&&s.classList.contains('is-hidden'))clearFilters()});
+ function updateProgress(){const ex=Object.keys(state.viewed).length,q=Object.keys(state.solved).length;document.getElementById('progText').textContent='예제 확인 '+ex+' / 4 · 점검 문제 정답 '+q+' / 8';document.getElementById('progBar').style.width=((ex+q)/12*100)+'%'}
+ const cks=[...document.querySelectorAll('.ck')];cks.forEach((c,i)=>{c.checked=!!state.checks[i];c.onchange=()=>{state.checks=cks.map(x=>x.checked);save();updateChecks()}});
+ function updateChecks(){const n=cks.filter(x=>x.checked).length;document.getElementById('ckText').textContent=n+' / '+cks.length+' 완료';document.getElementById('ckBar').style.width=(n/cks.length*100)+'%';cks.forEach(c=>c.closest('.check-row').classList.toggle('checked',c.checked))}
+ document.getElementById('ckReset').onclick=()=>{cks.forEach(c=>c.checked=false);state.checks=[];save();updateChecks()};
+ document.getElementById('allReset').onclick=()=>{if(confirm('중요 공식, 정답 기록, 다시 볼 문제, 체크리스트를 모두 초기화할까요?')){localStorage.removeItem(KEY);location.reload()}};
+ document.getElementById('toTop').onclick=()=>window.scrollTo({top:0,behavior:'smooth'});
+ renderFavs();renderReview();updateProgress();updateChecks();applyFilter();
+})();
+</script>
+</body></html>
