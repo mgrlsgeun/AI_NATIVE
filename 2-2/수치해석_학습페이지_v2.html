@@ -1,0 +1,741 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>수치해석 시험 대비 학습 페이지</title>
+<style>
+  :root {
+    --bg: #f5f6fa; --card: #ffffff; --text: #1f2430; --muted: #5b6475;
+    --accent: #2f5bd8; --accent-soft: #e8eefc;
+    --formula-bg: #fff7e0; --formula-border: #f0b429;
+    --line: #dde1ea; --ok: #12805c; --bad: #b4360b;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0; background: var(--bg); color: var(--text);
+    font-family: "Malgun Gothic", "Apple SD Gothic Neo", "Noto Sans KR", system-ui, -apple-system, "Segoe UI", sans-serif;
+    line-height: 1.7; font-size: 16px; overflow-wrap: anywhere;
+  }
+  button, input { font: inherit; }
+  header { background: var(--accent); color: #fff; padding: 28px 16px 22px; }
+  .wrap { max-width: 900px; margin: 0 auto; }
+  header h1 { margin: 0 0 8px; font-size: clamp(1.4rem, 5vw, 2rem); line-height: 1.3; }
+  header p { margin: 0; opacity: .95; font-size: .95rem; }
+
+  nav.topnav {
+    position: sticky; top: 0; z-index: 10; background: var(--card);
+    border-bottom: 1px solid var(--line); padding: 10px 16px;
+    box-shadow: 0 2px 6px rgba(0,0,0,.05);
+  }
+  nav.topnav .wrap { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+  nav.topnav a {
+    display: block; text-align: center; text-decoration: none;
+    background: var(--accent-soft); color: var(--accent); font-weight: 700; font-size: .95rem;
+    padding: 10px 6px; border-radius: 8px; border: 1px solid transparent;
+  }
+  nav.topnav a:hover, nav.topnav a:focus-visible { border-color: var(--accent); outline: none; }
+  @media (max-width: 560px) { nav.topnav .wrap { grid-template-columns: repeat(2, 1fr); } }
+
+  main { padding: 20px 16px 8px; }
+  .card, section.topic, section.panel {
+    background: var(--card); border: 1px solid var(--line); border-radius: 14px;
+    padding: 18px; margin-bottom: 20px;
+  }
+  section.topic { scroll-margin-top: 120px; }
+  section.panel { scroll-margin-top: 120px; }
+  section.topic > h2, section.panel > h2 {
+    margin: 0 0 12px; font-size: 1.3rem; border-left: 5px solid var(--accent); padding-left: 10px;
+  }
+  h3 { margin: 22px 0 8px; font-size: 1.05rem; color: var(--accent); }
+  p { margin: 6px 0; }
+  ul, ol { margin: 6px 0; padding-left: 22px; }
+  li { margin: 4px 0; }
+  .muted { color: var(--muted); font-size: .9rem; }
+
+  /* 학습 도구 */
+  .search {
+    width: 100%; padding: 12px 14px; border: 1px solid var(--line); border-radius: 10px;
+    background: #fbfcfe; outline: none;
+  }
+  .search:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(47,91,216,.15); }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0; }
+  .chip {
+    border: 1px solid var(--line); background: #fff; color: var(--text);
+    padding: 7px 12px; border-radius: 999px; cursor: pointer; font-size: .9rem;
+  }
+  .chip[aria-pressed="true"] { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .quick { display: flex; flex-wrap: wrap; gap: 6px 14px; margin-top: 8px; font-size: .9rem; }
+  .quick a { color: var(--accent); }
+  .progress { height: 12px; background: #e8edf5; border-radius: 999px; overflow: hidden; margin: 8px 0 4px; }
+  .progress > div { height: 100%; width: 0; background: var(--ok); transition: width .25s; }
+  .empty { display: none; text-align: center; color: var(--muted); padding: 24px 8px; }
+
+  /* 공식 */
+  .formula {
+    position: relative; background: var(--formula-bg); border: 2px solid var(--formula-border);
+    border-radius: 10px; padding: 12px 14px; margin: 10px 0;
+  }
+  .formula.starred { border-color: #d97706; box-shadow: 0 0 0 3px rgba(217,119,6,.2); }
+  .formula .name { font-weight: 700; font-size: .92rem; margin-bottom: 4px; padding-right: 74px; }
+  .formula .eq {
+    font-family: "Cambria Math", "Times New Roman", "Noto Serif KR", serif;
+    font-size: 1.1rem; line-height: 1.9;
+  }
+  .formula .note { font-size: .88rem; color: var(--muted); margin-top: 4px; }
+  .star {
+    position: absolute; top: 8px; right: 8px; border: 1px solid #d9b25b; background: #fff;
+    border-radius: 999px; padding: 2px 10px; font-size: .82rem; cursor: pointer; color: #8a5a00;
+  }
+  .star[aria-pressed="true"] { background: #d97706; color: #fff; border-color: #d97706; }
+  .symbols { font-size: .93rem; background: #f1f3f8; border-radius: 8px; padding: 10px 14px; margin: 8px 0; }
+  .symbols b { color: var(--accent); }
+  .cond { font-size: .93rem; margin-top: 6px; }
+  .cond::before { content: "적용 조건  "; font-weight: 700; color: var(--bad); }
+  .cond.plain::before { content: none; }
+
+  /* 예제 */
+  .example { border: 1px dashed var(--accent); border-radius: 10px; padding: 14px; margin-top: 10px; background: #fbfcff; }
+  .example .q { font-weight: 600; }
+  .toggle {
+    margin-top: 10px; background: var(--accent); color: #fff; border: 0; border-radius: 8px;
+    padding: 10px 18px; font-weight: 700; cursor: pointer;
+  }
+  .toggle:hover { filter: brightness(1.08); }
+  .toggle:focus-visible, .btn:focus-visible, .chip:focus-visible, .star:focus-visible { outline: 3px solid #9db6f5; outline-offset: 2px; }
+  .solution { margin-top: 12px; padding: 12px 14px; background: #f1faf6; border: 1px solid #bfe3d2; border-radius: 8px; }
+  .solution[hidden] { display: none; }
+  .solution h4 { margin: 10px 0 4px; font-size: .95rem; color: var(--ok); }
+  .solution h4:first-child { margin-top: 0; }
+  .calc { font-family: "Cambria Math", "Times New Roman", "Noto Serif KR", serif; line-height: 1.9; }
+  .answer { margin-top: 10px; padding: 8px 12px; border-radius: 6px; background: var(--ok); color: #fff; font-weight: 700; }
+  table.pts { border-collapse: collapse; margin: 6px 0; max-width: 100%; }
+  table.pts th, table.pts td { border: 1px solid var(--line); padding: 4px 12px; text-align: center; }
+  table.pts th { background: #eef1f8; }
+
+  /* 자가 점검 */
+  .q-item { border: 1px solid var(--line); border-radius: 10px; padding: 12px; margin: 10px 0; background: #fff; scroll-margin-top: 120px; }
+  .q-item.solved { border-color: #8fd0b4; background: #f1faf6; }
+  .q-item .qtext { font-weight: 600; }
+  .q-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 8px; }
+  .q-row input[type="text"] { width: 150px; max-width: 100%; padding: 8px 10px; border: 1px solid var(--line); border-radius: 8px; }
+  .btn { border: 0; border-radius: 8px; padding: 8px 14px; cursor: pointer; font-weight: 700; background: var(--accent); color: #fff; }
+  .btn.sub { background: #e9edf5; color: #2c3547; }
+  .btn.mark[aria-pressed="true"] { background: #fde68a; color: #6b4500; }
+  .feedback { margin-top: 8px; font-weight: 700; min-height: 1.4em; }
+  .feedback.ok { color: var(--ok); }
+  .feedback.bad { color: var(--bad); }
+  .feedback.info { color: var(--muted); font-weight: 600; }
+  .extra { font-weight: 400; font-size: .93rem; color: var(--text); margin-top: 6px; }
+
+  /* 표 / 목록 */
+  table.cmp { width: 100%; border-collapse: collapse; table-layout: fixed; font-size: .9rem; }
+  table.cmp th, table.cmp td { border: 1px solid var(--line); padding: 6px 8px; text-align: left; vertical-align: top; }
+  table.cmp th { background: #eef1f8; }
+  .fav-item { border: 1px solid var(--formula-border); background: var(--formula-bg); border-radius: 10px; padding: 8px 12px; margin: 8px 0; }
+  .fav-item .tp { font-size: .8rem; color: var(--muted); }
+  .fav-item .eq { font-family: "Cambria Math", "Times New Roman", "Noto Serif KR", serif; font-size: 1.05rem; line-height: 1.8; }
+  .review-item { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: space-between; border: 1px solid var(--line); border-radius: 10px; padding: 8px 12px; margin: 8px 0; }
+  .review-item span { flex: 1 1 200px; }
+  .check-row { display: flex; align-items: flex-start; gap: 10px; margin: 8px 0; padding: 8px 10px; border-radius: 8px; background: #f8fafc; cursor: pointer; }
+  .check-row.checked { background: #effaf2; }
+  .check-row input { margin-top: 6px; transform: scale(1.15); }
+  .is-hidden { display: none !important; }
+
+  footer { text-align: center; padding: 10px 16px 40px; }
+  #toTop { background: #333b4f; color: #fff; border: 0; border-radius: 999px; padding: 12px 26px; font-weight: 700; cursor: pointer; }
+  footer small { display: block; margin-top: 12px; color: var(--muted); }
+
+  @media print {
+    nav, #toTop, .tools, .quiz, .star, .toggle, .btn, .quick, .chips, #reviewPanel { display: none !important; }
+    body { background: #fff; }
+    header { background: none; color: #000; padding: 0 0 10px; }
+    .solution[hidden] { display: block; }
+    section.topic, section.panel { break-inside: avoid; border: 1px solid #999; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <h1>수치해석 시험 대비 학습 페이지</h1>
+    <p>위의 주제 버튼을 눌러 원하는 단원으로 이동하세요. 공식을 확인하고, 예제와 자가 점검 문제로 이해했는지 확인한 뒤, 헷갈리는 공식에는 <b>중요</b> 표시를 해 두면 시험 직전에 모아 볼 수 있습니다.</p>
+  </div>
+</header>
+
+<nav class="topnav" aria-label="주제 이동">
+  <div class="wrap">
+    <a href="#roots">방정식의 근</a>
+    <a href="#linear">연립방정식</a>
+    <a href="#interp">보간법</a>
+    <a href="#calculus">수치미분·적분</a>
+  </div>
+</nav>
+
+<main class="wrap">
+
+<!-- 학습 도구 -->
+<section class="card tools" id="tools">
+  <input class="search" id="searchInput" type="search" placeholder="검색: 예) 뉴턴, 피벗, 라그랑주, Simpson" aria-label="주제 검색">
+  <div class="chips" id="chips" role="group" aria-label="표시할 주제 선택">
+    <button class="chip" type="button" data-topic="all" aria-pressed="true">전체</button>
+    <button class="chip" type="button" data-topic="roots" aria-pressed="false">방정식의 근</button>
+    <button class="chip" type="button" data-topic="linear" aria-pressed="false">연립방정식</button>
+    <button class="chip" type="button" data-topic="interp" aria-pressed="false">보간법</button>
+    <button class="chip" type="button" data-topic="calculus" aria-pressed="false">수치미분·적분</button>
+  </div>
+  <div id="filterMsg" class="muted" aria-live="polite">전체 주제를 표시하고 있습니다.</div>
+  <div class="quick">
+    <a href="#favPanel">★ 중요 공식 모음</a>
+    <a href="#compare">방법 비교표</a>
+    <a href="#reviewPanel">🔖 다시 볼 문제</a>
+    <a href="#checklist">시험 전 체크리스트</a>
+  </div>
+  <h3 style="margin-top:14px">학습 현황</h3>
+  <div class="progress" aria-hidden="true"><div id="progBar"></div></div>
+  <div class="muted" id="progText">예제 확인 0 / 4 · 점검 문제 정답 0 / 8</div>
+  <div class="muted">중요 표시, 점검 결과, 체크 내용은 저장되지 않으며 페이지를 닫거나 새로 고침하면 초기화됩니다.</div>
+</section>
+
+<!-- 중요 공식 모음 -->
+<section class="panel" id="favPanel">
+  <h2>★ 중요 공식 모음</h2>
+  <p class="muted">각 공식 상자의 <b>☆ 중요</b> 버튼을 누르면 여기에 모아 보여 줍니다. 시험 직전에 이 목록만 훑어보세요.</p>
+  <div id="favList"></div>
+  <div class="empty" id="favEmpty" style="display:block">아직 중요 표시한 공식이 없습니다.</div>
+</section>
+
+<!-- 비교표 -->
+<section class="panel" id="compare">
+  <h2>방법 한눈에 비교</h2>
+  <table class="cmp">
+    <thead><tr><th style="width:26%">방법</th><th style="width:34%">오차·수렴</th><th>주의점</th></tr></thead>
+    <tbody>
+      <tr><td>이분법</td><td>매 반복마다 구간 1/2 (오차 ≤ (<i>b</i>−<i>a</i>)/2<sup><i>n</i></sup>)</td><td><i>f</i>(<i>a</i>)<i>f</i>(<i>b</i>) &lt; 0 필요, 느림</td></tr>
+      <tr><td>뉴턴법</td><td>2차 수렴(매우 빠름)</td><td><i>f</i>′ ≠ 0, 초기값에 민감</td></tr>
+      <tr><td>가우스 소거법</td><td>연산량 <i>n</i>³에 비례</td><td>피벗 0이면 행 교환</td></tr>
+      <tr><td>선형 보간</td><td>2점, 1차식</td><td>두 점 사이에서 사용</td></tr>
+      <tr><td>라그랑주 보간</td><td><i>n</i>+1점 → <i>n</i>차식</td><td>고차에서 진동 가능</td></tr>
+      <tr><td>전진 차분</td><td><i>O</i>(<i>h</i>)</td><td>정확도 낮음</td></tr>
+      <tr><td>중심 차분</td><td><i>O</i>(<i>h</i>²)</td><td>분모는 2<i>h</i></td></tr>
+      <tr><td>사다리꼴</td><td><i>O</i>(<i>h</i>²)</td><td>내부 항 계수 2</td></tr>
+      <tr><td>Simpson 1/3</td><td><i>O</i>(<i>h</i>⁴)</td><td><i>n</i>은 짝수</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<div class="empty" id="emptyState">조건에 맞는 주제가 없습니다. 검색어를 지우거나 주제 선택을 바꿔 보세요.</div>
+
+<!-- 1. 방정식의 근 -->
+<section class="topic" id="roots" data-keywords="방정식 근 이분법 뉴턴 newton bisection 반복 수렴 미분 오차 허용오차 반복횟수">
+  <h2>1. 방정식의 근</h2>
+
+  <h3>핵심 개념</h3>
+  <p><i>f</i>(<i>x</i>) = 0을 만족하는 <i>x</i>(근)를 반복 계산으로 근사합니다. <b>이분법</b>은 구간을 반씩 줄여 가며 느리지만 안정적으로 수렴하고, <b>뉴턴법</b>은 접선을 이용해 빠르게(2차 수렴) 수렴하지만 초기값과 미분값에 민감합니다.</p>
+
+  <h3>반드시 기억할 공식</h3>
+  <div class="formula">
+    <div class="name">이분법</div>
+    <div class="eq"><i>c</i> = (<i>a</i> + <i>b</i>) / 2</div>
+    <div class="eq">오차 한계: |<i>x</i><sub><i>n</i></sub> − <i>x</i>*| ≤ (<i>b</i> − <i>a</i>) / 2<sup><i>n</i></sup></div>
+    <div class="eq">필요 반복 횟수: <i>n</i> ≥ log<sub>2</sub>( (<i>b</i> − <i>a</i>) / ε )</div>
+  </div>
+  <div class="formula">
+    <div class="name">뉴턴법 (Newton–Raphson)</div>
+    <div class="eq"><i>x</i><sub><i>n</i>+1</sub> = <i>x</i><sub><i>n</i></sub> − <i>f</i>(<i>x</i><sub><i>n</i></sub>) / <i>f</i>′(<i>x</i><sub><i>n</i></sub>)</div>
+  </div>
+  <div class="symbols">
+    <b>기호</b> &nbsp;<i>a</i>, <i>b</i>: 구간의 양 끝 / <i>c</i>: 중점 / <i>x*</i>: 참값(근) / <i>n</i>: 반복 횟수 / ε: 허용 오차 / <i>f</i>′: <i>f</i>의 도함수 / <i>x</i><sub><i>n</i></sub>: <i>n</i>번째 근사값
+  </div>
+  <div class="cond">이분법: <i>f</i>(<i>a</i>)·<i>f</i>(<i>b</i>) &lt; 0 (구간 안에 근이 존재, <i>f</i>는 연속). 뉴턴법: <i>f</i>′(<i>x</i><sub><i>n</i></sub>) ≠ 0 이고 초기값이 근 가까이에 있어야 수렴.</div>
+
+  <h3>문제를 풀 때의 순서</h3>
+  <ol>
+    <li><b>이분법:</b> <i>f</i>(<i>a</i>)·<i>f</i>(<i>b</i>) &lt; 0 확인 → 중점 <i>c</i> 계산 → <i>f</i>(<i>c</i>) 부호가 같은 쪽 끝점을 <i>c</i>로 교체 → 허용 오차까지 반복.</li>
+    <li><b>뉴턴법:</b> <i>f</i>′(<i>x</i>) 구하기 → 초기값 <i>x</i><sub>0</sub> 정하기 → 공식에 대입해 <i>x</i><sub>1</sub>, <i>x</i><sub>2</sub>, … 계산 → 연속한 값의 차가 충분히 작아지면 종료.</li>
+  </ol>
+
+  <h3>예제</h3>
+  <div class="example">
+    <p class="q"><i>f</i>(<i>x</i>) = <i>x</i>² − 2 의 양의 근(√2)을 뉴턴법으로 구하시오. 초기값 <i>x</i><sub>0</sub> = 1, 두 번 반복하여 <i>x</i><sub>2</sub>를 구하고, 이분법으로 [1, 2]에서 오차 한계 0.01 이하가 되려면 최소 몇 번 반복해야 하는지도 구하시오.</p>
+    <button class="toggle" type="button" aria-expanded="false" aria-controls="sol-1">풀이 보기</button>
+    <div class="solution" id="sol-1" hidden>
+      <h4>① 조건 정리</h4>
+      <div class="calc"><i>f</i>(<i>x</i>) = <i>x</i>² − 2, &nbsp;<i>f</i>′(<i>x</i>) = 2<i>x</i>, &nbsp;<i>x</i><sub>0</sub> = 1<br>
+      뉴턴 공식: <i>x</i><sub><i>n</i>+1</sub> = <i>x</i><sub><i>n</i></sub> − (<i>x</i><sub><i>n</i></sub>² − 2) / (2<i>x</i><sub><i>n</i></sub>)</div>
+      <h4>② 계산 과정</h4>
+      <div class="calc">
+        <i>x</i><sub>1</sub> = 1 − (1 − 2)/2 = 1 + 0.5 = 1.5<br>
+        <i>x</i><sub>2</sub> = 1.5 − (2.25 − 2)/3 = 1.5 − 0.083333 = 1.416667<br>
+        (참고: √2 = 1.414214 이므로 오차는 약 0.0024)<br><br>
+        이분법: (2 − 1)/2<sup><i>n</i></sup> ≤ 0.01 → 2<sup><i>n</i></sup> ≥ 100<br>
+        2<sup>6</sup> = 64 &lt; 100, &nbsp;2<sup>7</sup> = 128 ≥ 100 → <i>n</i> = 7
+      </div>
+      <div class="answer">답: <i>x</i><sub>2</sub> ≈ 1.4167 (뉴턴법) / 이분법은 최소 7회 반복</div>
+    </div>
+  </div>
+
+  <div class="quiz" data-topic="roots"></div>
+
+  <h3>자주 하는 실수</h3>
+  <ul>
+    <li>이분법을 시작하기 전에 <i>f</i>(<i>a</i>)·<i>f</i>(<i>b</i>) &lt; 0 인지 확인하지 않는다.</li>
+    <li>반복 횟수 <i>n</i>을 구할 때 올림하지 않고 소수로 답한다 (예: 3.6회 → 4회).</li>
+    <li>뉴턴법에서 <i>f</i>′(<i>x</i>)가 0에 가까운 점을 초기값으로 잡아 값이 크게 튄다.</li>
+  </ul>
+</section>
+
+<!-- 2. 연립방정식 -->
+<section class="topic" id="linear" data-keywords="연립방정식 연립일차 가우스 소거법 피벗 승수 전진소거 후진대입 행렬 확대행렬">
+  <h2>2. 연립방정식 (가우스 소거법)</h2>
+
+  <h3>핵심 개념</h3>
+  <p>연립일차방정식 <i>A</i><b>x</b> = <b>b</b>를 확대행렬로 쓴 뒤, <b>전진 소거</b>로 상삼각 행렬을 만들고 <b>후진 대입</b>으로 마지막 변수부터 차례로 구합니다.</p>
+
+  <h3>반드시 기억할 공식</h3>
+  <div class="formula">
+    <div class="name">전진 소거 (승수와 행 연산)</div>
+    <div class="eq"><i>m</i><sub><i>ik</i></sub> = <i>a</i><sub><i>ik</i></sub> / <i>a</i><sub><i>kk</i></sub></div>
+    <div class="eq">(행 <i>i</i>) ← (행 <i>i</i>) − <i>m</i><sub><i>ik</i></sub> × (행 <i>k</i>)</div>
+  </div>
+  <div class="formula">
+    <div class="name">후진 대입</div>
+    <div class="eq"><i>x</i><sub><i>n</i></sub> = <i>b</i><sub><i>n</i></sub> / <i>a</i><sub><i>nn</i></sub></div>
+    <div class="eq"><i>x</i><sub><i>i</i></sub> = ( <i>b</i><sub><i>i</i></sub> − Σ<sub><i>j</i>=<i>i</i>+1</sub><sup><i>n</i></sup> <i>a</i><sub><i>ij</i></sub><i>x</i><sub><i>j</i></sub> ) / <i>a</i><sub><i>ii</i></sub> &nbsp;&nbsp;(<i>i</i> = <i>n</i>−1, …, 1)</div>
+  </div>
+  <div class="symbols">
+    <b>기호</b> &nbsp;<i>a</i><sub><i>ij</i></sub>: <i>i</i>행 <i>j</i>열 계수 / <i>a</i><sub><i>kk</i></sub>: 피벗(기준 원소) / <i>m</i><sub><i>ik</i></sub>: 승수 / <i>b</i><sub><i>i</i></sub>: 우변 상수 / <i>n</i>: 미지수의 개수
+  </div>
+  <div class="cond">피벗 <i>a</i><sub><i>kk</i></sub> ≠ 0 이어야 합니다. 0이거나 매우 작으면 행을 교환(부분 피벗팅)합니다.</div>
+
+  <h3>문제를 풀 때의 순서</h3>
+  <ol>
+    <li>방정식을 확대행렬 [<i>A</i> | <b>b</b>]로 씁니다.</li>
+    <li>첫 열의 피벗 아래를 승수를 곱해 0으로 만듭니다. 다음 열로 넘어가 상삼각 형태가 될 때까지 반복합니다.</li>
+    <li>맨 아래 식에서 <i>x</i><sub><i>n</i></sub>을 구하고, 위로 올라가며 대입해 나머지 변수를 구합니다.</li>
+    <li>구한 해를 원래 식에 대입해 검산합니다.</li>
+  </ol>
+
+  <h3>예제</h3>
+  <div class="example">
+    <p class="q">다음 연립방정식을 가우스 소거법으로 푸시오.</p>
+    <div class="calc">
+      <i>x</i> + <i>y</i> + <i>z</i> = 6 &nbsp;&nbsp;…(R1)<br>
+      2<i>x</i> − <i>y</i> + <i>z</i> = 3 &nbsp;…(R2)<br>
+      <i>x</i> + 2<i>y</i> − <i>z</i> = 2 &nbsp;…(R3)
+    </div>
+    <button class="toggle" type="button" aria-expanded="false" aria-controls="sol-2">풀이 보기</button>
+    <div class="solution" id="sol-2" hidden>
+      <h4>① 조건 정리</h4>
+      <div class="calc">확대행렬 [<i>A</i> | <b>b</b>]: &nbsp;(1, 1, 1 | 6), (2, −1, 1 | 3), (1, 2, −1 | 2)<br>
+      첫 피벗 <i>a</i><sub>11</sub> = 1 ≠ 0</div>
+      <h4>② 계산 과정</h4>
+      <div class="calc">
+        <b>1단계</b> (<i>x</i> 소거): <i>m</i><sub>21</sub> = 2, <i>m</i><sub>31</sub> = 1<br>
+        R2 − 2·R1 = (0, −3, −1 | −9)<br>
+        R3 − 1·R1 = (0, 1, −2 | −4)<br><br>
+        <b>2단계</b> (<i>y</i> 소거): 피벗 −3, <i>m</i><sub>32</sub> = 1/(−3) = −1/3<br>
+        R3 − (−1/3)·R2 = R3 + (1/3)·R2 = (0, 0, −7/3 | −7)<br><br>
+        <b>후진 대입</b><br>
+        −(7/3)<i>z</i> = −7 → <i>z</i> = 3<br>
+        −3<i>y</i> − <i>z</i> = −9 → −3<i>y</i> = −6 → <i>y</i> = 2<br>
+        <i>x</i> + <i>y</i> + <i>z</i> = 6 → <i>x</i> = 6 − 2 − 3 = 1<br><br>
+        <b>검산</b>: R2 → 2 − 2 + 3 = 3 ✓, R3 → 1 + 4 − 3 = 2 ✓
+      </div>
+      <div class="answer">답: <i>x</i> = 1, <i>y</i> = 2, <i>z</i> = 3</div>
+    </div>
+  </div>
+
+  <div class="quiz" data-topic="linear"></div>
+
+  <h3>자주 하는 실수</h3>
+  <ul>
+    <li>행 연산을 계수에만 하고 우변 상수 <i>b</i>에는 빼먹는다.</li>
+    <li>승수의 부호를 틀린다. 항상 (행 <i>i</i>) − <i>m</i> × (행 <i>k</i>) 형태로 계산한다.</li>
+    <li>피벗이 0인데 그대로 나누거나, 행 교환 후 우변 상수를 같이 바꾸지 않는다.</li>
+  </ul>
+</section>
+
+<!-- 3. 보간법 -->
+<section class="topic" id="interp" data-keywords="보간 보간법 선형보간 라그랑주 lagrange 다항식 내삽 기저다항식 자료점">
+  <h2>3. 보간법</h2>
+
+  <h3>핵심 개념</h3>
+  <p>주어진 점들 (<i>x</i><sub><i>i</i></sub>, <i>y</i><sub><i>i</i></sub>)을 지나는 함수를 만들어, 점 사이의 값을 추정합니다. <b>선형 보간</b>은 두 점을 직선으로 잇고, <b>라그랑주 보간</b>은 <i>n</i>+1개의 점을 지나는 <i>n</i>차 다항식을 만듭니다.</p>
+
+  <h3>반드시 기억할 공식</h3>
+  <div class="formula">
+    <div class="name">선형 보간법</div>
+    <div class="eq"><i>P</i><sub>1</sub>(<i>x</i>) = <i>y</i><sub>0</sub> + ( (<i>y</i><sub>1</sub> − <i>y</i><sub>0</sub>) / (<i>x</i><sub>1</sub> − <i>x</i><sub>0</sub>) ) · (<i>x</i> − <i>x</i><sub>0</sub>)</div>
+  </div>
+  <div class="formula">
+    <div class="name">라그랑주 보간법</div>
+    <div class="eq"><i>P</i><sub><i>n</i></sub>(<i>x</i>) = Σ<sub><i>i</i>=0</sub><sup><i>n</i></sup> <i>y</i><sub><i>i</i></sub> · <i>L</i><sub><i>i</i></sub>(<i>x</i>)</div>
+    <div class="eq"><i>L</i><sub><i>i</i></sub>(<i>x</i>) = Π<sub><i>j</i>≠<i>i</i></sub> (<i>x</i> − <i>x</i><sub><i>j</i></sub>) / (<i>x</i><sub><i>i</i></sub> − <i>x</i><sub><i>j</i></sub>)</div>
+    <div class="note">2점: <i>L</i><sub>0</sub> = (<i>x</i>−<i>x</i><sub>1</sub>)/(<i>x</i><sub>0</sub>−<i>x</i><sub>1</sub>), <i>L</i><sub>1</sub> = (<i>x</i>−<i>x</i><sub>0</sub>)/(<i>x</i><sub>1</sub>−<i>x</i><sub>0</sub>) 로 선형 보간과 같음</div>
+  </div>
+  <div class="symbols">
+    <b>기호</b> &nbsp;(<i>x</i><sub><i>i</i></sub>, <i>y</i><sub><i>i</i></sub>): 주어진 자료점 / <i>P</i><sub><i>n</i></sub>: <i>n</i>차 보간 다항식 / <i>L</i><sub><i>i</i></sub>(<i>x</i>): 라그랑주 기저 다항식 (<i>L</i><sub><i>i</i></sub>(<i>x</i><sub><i>i</i></sub>) = 1, 다른 점에서는 0) / Σ: 합, Π: 곱
+  </div>
+  <div class="cond"><i>x</i><sub><i>i</i></sub>가 모두 서로 달라야 합니다. 선형 보간은 <i>x</i>가 <i>x</i><sub>0</sub>와 <i>x</i><sub>1</sub> 사이일 때 가장 정확하며, 점이 <i>n</i>+1개이면 <i>n</i>차입니다. 점이 많다고 항상 정확한 것은 아닙니다(고차에서 진동 발생 가능).</div>
+
+  <h3>문제를 풀 때의 순서</h3>
+  <ol>
+    <li>구하려는 <i>x</i>를 둘러싼 두 점(선형) 또는 사용할 모든 점(라그랑주)을 정합니다.</li>
+    <li>라그랑주는 각 <i>i</i>에 대해 <i>L</i><sub><i>i</i></sub>(<i>x</i>)의 분자와 분모를 따로 계산합니다.</li>
+    <li><i>y</i><sub><i>i</i></sub> · <i>L</i><sub><i>i</i></sub>(<i>x</i>)를 모두 더합니다.</li>
+    <li>검산: <i>L</i><sub>0</sub> + <i>L</i><sub>1</sub> + … = 1 이 되는지 확인합니다.</li>
+  </ol>
+
+  <h3>예제</h3>
+  <div class="example">
+    <p class="q">다음 표는 어떤 함수의 값이다. <i>x</i> = 3 에서의 값을 (a) 선형 보간(<i>x</i> = 2, 4 사용), (b) 세 점 전체를 사용한 라그랑주 보간으로 각각 구하시오.</p>
+    <table class="pts">
+      <tr><th><i>x</i></th><td>1</td><td>2</td><td>4</td></tr>
+      <tr><th><i>y</i></th><td>1</td><td>4</td><td>16</td></tr>
+    </table>
+    <button class="toggle" type="button" aria-expanded="false" aria-controls="sol-3">풀이 보기</button>
+    <div class="solution" id="sol-3" hidden>
+      <h4>① 조건 정리</h4>
+      <div class="calc">(a) (<i>x</i><sub>0</sub>, <i>y</i><sub>0</sub>) = (2, 4), (<i>x</i><sub>1</sub>, <i>y</i><sub>1</sub>) = (4, 16)<br>
+      (b) 세 점 (1, 1), (2, 4), (4, 16) → 2차 다항식</div>
+      <h4>② 계산 과정</h4>
+      <div class="calc">
+        <b>(a)</b> <i>P</i><sub>1</sub>(3) = 4 + (16 − 4)/(4 − 2) · (3 − 2) = 4 + 6 = 10<br><br>
+        <b>(b)</b><br>
+        <i>L</i><sub>0</sub>(3) = (3−2)(3−4) / ((1−2)(1−4)) = (1)(−1)/(3) = −1/3<br>
+        <i>L</i><sub>1</sub>(3) = (3−1)(3−4) / ((2−1)(2−4)) = (2)(−1)/(−2) = 1<br>
+        <i>L</i><sub>2</sub>(3) = (3−1)(3−2) / ((4−1)(4−2)) = 2/6 = 1/3<br>
+        검산: −1/3 + 1 + 1/3 = 1 ✓<br>
+        <i>P</i><sub>2</sub>(3) = 1·(−1/3) + 4·1 + 16·(1/3) = −1/3 + 4 + 16/3 = 9
+      </div>
+      <div class="answer">답: (a) 10 &nbsp;&nbsp;(b) 9 &nbsp;(자료가 <i>y</i> = <i>x</i>²이므로 참값 9와 일치)</div>
+    </div>
+  </div>
+
+  <div class="quiz" data-topic="interp"></div>
+
+  <h3>자주 하는 실수</h3>
+  <ul>
+    <li>라그랑주 분모의 (<i>x</i><sub><i>i</i></sub> − <i>x</i><sub><i>j</i></sub>) 순서나 부호를 뒤집는다. 분자는 <i>x</i> − <i>x</i><sub><i>j</i></sub>, 분모는 <i>x</i><sub><i>i</i></sub> − <i>x</i><sub><i>j</i></sub>.</li>
+    <li>선형 보간을 두 점 밖(외삽)에 적용해 오차가 커진다.</li>
+    <li>점이 <i>n</i>+1개일 때 <i>n</i>차인 것을 헷갈려 차수를 틀린다.</li>
+  </ul>
+</section>
+
+<!-- 4. 수치미분·적분 -->
+<section class="topic" id="calculus" data-keywords="수치미분 수치적분 미분 적분 전진차분 중심차분 사다리꼴 trapezoid simpson 심프슨 간격 h">
+  <h2>4. 수치미분·적분</h2>
+
+  <h3>핵심 개념</h3>
+  <p>도함수는 가까운 점의 함수값 차이로, 정적분은 구간을 잘게 나눈 도형의 넓이 합으로 근사합니다. 간격 <i>h</i>가 작을수록 정확하며, 차수가 높은 공식일수록 같은 <i>h</i>에서 오차가 작습니다.</p>
+
+  <h3>반드시 기억할 공식</h3>
+  <div class="formula">
+    <div class="name">전진 차분 (오차 <i>O</i>(<i>h</i>))</div>
+    <div class="eq"><i>f</i>′(<i>x</i>) ≈ ( <i>f</i>(<i>x</i> + <i>h</i>) − <i>f</i>(<i>x</i>) ) / <i>h</i></div>
+  </div>
+  <div class="formula">
+    <div class="name">중심 차분 (오차 <i>O</i>(<i>h</i>²))</div>
+    <div class="eq"><i>f</i>′(<i>x</i>) ≈ ( <i>f</i>(<i>x</i> + <i>h</i>) − <i>f</i>(<i>x</i> − <i>h</i>) ) / (2<i>h</i>)</div>
+  </div>
+  <div class="formula">
+    <div class="name">사다리꼴 공식 (합성, 오차 <i>O</i>(<i>h</i>²))</div>
+    <div class="eq"><i>T</i> = (<i>h</i>/2) · [ <i>f</i><sub>0</sub> + 2(<i>f</i><sub>1</sub> + <i>f</i><sub>2</sub> + … + <i>f</i><sub><i>n</i>−1</sub>) + <i>f</i><sub><i>n</i></sub> ]</div>
+  </div>
+  <div class="formula">
+    <div class="name">Simpson 1/3 공식 (합성, 오차 <i>O</i>(<i>h</i>⁴))</div>
+    <div class="eq"><i>S</i> = (<i>h</i>/3) · [ <i>f</i><sub>0</sub> + 4(<i>f</i><sub>1</sub> + <i>f</i><sub>3</sub> + …) + 2(<i>f</i><sub>2</sub> + <i>f</i><sub>4</sub> + …) + <i>f</i><sub><i>n</i></sub> ]</div>
+  </div>
+  <div class="symbols">
+    <b>기호</b> &nbsp;<i>h</i>: 간격(적분에서는 <i>h</i> = (<i>b</i> − <i>a</i>)/<i>n</i>) / <i>n</i>: 소구간 개수 / <i>f</i><sub><i>k</i></sub> = <i>f</i>(<i>x</i><sub><i>k</i></sub>), <i>x</i><sub><i>k</i></sub> = <i>a</i> + <i>kh</i> / <i>O</i>(<i>h</i><sup><i>p</i></sup>): 오차가 <i>h</i><sup><i>p</i></sup>에 비례
+  </div>
+  <div class="cond">Simpson 1/3 공식은 소구간 개수 <i>n</i>이 <b>짝수</b>일 때만 사용합니다. 계수는 양 끝 1, 홀수 번째 4, 짝수 번째(내부) 2 입니다.</div>
+
+  <h3>문제를 풀 때의 순서</h3>
+  <ol>
+    <li><b>미분:</b> 주어진 <i>h</i>로 <i>f</i>(<i>x</i>±<i>h</i>) 값을 구한 뒤 공식에 대입합니다.</li>
+    <li><b>적분:</b> <i>h</i> = (<i>b</i>−<i>a</i>)/<i>n</i> 계산 → 분점 <i>x</i><sub><i>k</i></sub>와 <i>f</i><sub><i>k</i></sub> 표 작성 → 공식의 계수를 맞춰 합산.</li>
+    <li>Simpson에서는 <i>n</i>이 짝수인지 먼저 확인합니다.</li>
+  </ol>
+
+  <h3>예제</h3>
+  <div class="example">
+    <p class="q"><i>f</i>(<i>x</i>) = <i>x</i>² 에 대하여 (a) <i>x</i> = 1, <i>h</i> = 0.5 일 때 전진 차분과 중심 차분으로 <i>f</i>′(1)을 구하고, (b) ∫<sub>0</sub><sup>2</sup> <i>x</i>² d<i>x</i> 를 <i>n</i> = 2 로 사다리꼴 공식과 Simpson 1/3 공식을 이용해 근사하시오. (참값: 도함수 2, 적분 8/3 ≈ 2.6667)</p>
+    <button class="toggle" type="button" aria-expanded="false" aria-controls="sol-4">풀이 보기</button>
+    <div class="solution" id="sol-4" hidden>
+      <h4>① 조건 정리</h4>
+      <div class="calc">(a) <i>f</i>(1) = 1, <i>f</i>(1.5) = 2.25, <i>f</i>(0.5) = 0.25<br>
+      (b) <i>a</i> = 0, <i>b</i> = 2, <i>n</i> = 2 → <i>h</i> = 1, &nbsp;<i>x</i><sub>0</sub> = 0, <i>x</i><sub>1</sub> = 1, <i>x</i><sub>2</sub> = 2<br>
+      <i>f</i><sub>0</sub> = 0, <i>f</i><sub>1</sub> = 1, <i>f</i><sub>2</sub> = 4 &nbsp;(<i>n</i> = 2는 짝수 → Simpson 사용 가능)</div>
+      <h4>② 계산 과정</h4>
+      <div class="calc">
+        <b>(a)</b><br>
+        전진 차분: (2.25 − 1)/0.5 = 2.5<br>
+        중심 차분: (2.25 − 0.25)/(2 × 0.5) = 2.0<br><br>
+        <b>(b)</b><br>
+        사다리꼴: <i>T</i> = (1/2)[0 + 2(1) + 4] = (1/2)(6) = 3<br>
+        Simpson 1/3: <i>S</i> = (1/3)[0 + 4(1) + 4] = 8/3 ≈ 2.6667
+      </div>
+      <div class="answer">답: (a) 전진 2.5, 중심 2.0 &nbsp;(b) 사다리꼴 3, Simpson 8/3 ≈ 2.6667</div>
+      <p class="muted" style="margin-top:8px">※ 중심 차분과 Simpson은 같은 조건에서 참값에 더 가깝습니다. (<i>x</i>²은 2차식이라 두 방법 모두 정확히 맞습니다.)</p>
+    </div>
+  </div>
+
+  <div class="quiz" data-topic="calculus"></div>
+
+  <h3>자주 하는 실수</h3>
+  <ul>
+    <li>Simpson 1/3 공식을 소구간 개수 <i>n</i>이 홀수일 때 그대로 적용한다.</li>
+    <li>사다리꼴 공식에서 내부 항의 계수 2를 빼먹거나 <i>h</i>/2 대신 <i>h</i>를 곱한다.</li>
+    <li>중심 차분의 분모를 <i>h</i>로 쓴다. 두 점 사이의 거리는 2<i>h</i> 이다.</li>
+  </ul>
+</section>
+
+<!-- 다시 볼 문제 -->
+<section class="panel" id="reviewPanel">
+  <h2>🔖 다시 볼 문제</h2>
+  <p class="muted">점검 문제의 🔖 버튼을 누르거나 오답을 내면 이곳에 모입니다.</p>
+  <div id="reviewList"></div>
+  <div class="empty" id="reviewEmpty" style="display:block">아직 다시 볼 문제가 없습니다.</div>
+</section>
+
+<!-- 체크리스트 -->
+<section class="panel" id="checklist">
+  <h2>시험 전 체크리스트</h2>
+  <p class="muted">직접 풀 수 있는 항목만 체크하세요.</p>
+  <label class="check-row"><input type="checkbox" class="ck"><span>이분법의 반복 횟수 공식을 쓰고 계산할 수 있다.</span></label>
+  <label class="check-row"><input type="checkbox" class="ck"><span>뉴턴법 공식을 적용해 2번 이상 반복 계산할 수 있다.</span></label>
+  <label class="check-row"><input type="checkbox" class="ck"><span>가우스 소거법의 전진 소거와 후진 대입을 할 수 있다.</span></label>
+  <label class="check-row"><input type="checkbox" class="ck"><span>선형 보간과 라그랑주 보간의 식을 쓸 수 있다.</span></label>
+  <label class="check-row"><input type="checkbox" class="ck"><span>전진·중심 차분의 식과 오차 차수를 구분할 수 있다.</span></label>
+  <label class="check-row"><input type="checkbox" class="ck"><span>사다리꼴과 Simpson 1/3 공식을 계수까지 정확히 쓸 수 있다.</span></label>
+  <div class="progress" aria-hidden="true"><div id="ckBar"></div></div>
+  <div class="muted" id="ckText">0 / 6 완료</div>
+  <button class="btn sub" type="button" id="ckReset" style="margin-top:8px">체크 초기화</button>
+</section>
+
+<section class="panel" id="guide">
+  <h2>시험 직전 사용 순서</h2>
+  <ol>
+    <li><b>★ 중요 공식 모음</b>에서 표시해 둔 공식부터 훑어봅니다.</li>
+    <li>자신 없는 주제만 골라(주제 선택 버튼) 공식과 풀이 순서를 다시 읽습니다.</li>
+    <li>예제를 먼저 풀어 본 뒤 <b>풀이 보기</b>로 맞춰 봅니다.</li>
+    <li>점검 문제를 풀고 틀린 문제는 <b>다시 볼 문제</b>에서 한 번 더 풉니다.</li>
+    <li>마지막으로 <b>체크리스트</b>를 확인합니다. 필요하면 인쇄하여 종이로도 봅니다.</li>
+  </ol>
+</section>
+
+</main>
+
+<footer>
+  <button id="toTop" type="button">맨 위로</button>
+  <small>시험 전에는 반드시 강의자료·교재의 공식과 비교하여 확인하세요.</small>
+</footer>
+
+<script>
+(function () {
+  // ---------- 점검 문제 데이터 ----------
+  var QUIZ = [
+    { id: 'r1', topic: 'roots', q: 'f(x) = x² − 2, 초기값 x₀ = 2 일 때 뉴턴법으로 x₁을 구하시오.', ans: 1.5, tol: 0.005,
+      hint: 'x₁ = x₀ − f(x₀)/f′(x₀), f′(x) = 2x', exp: 'x₁ = 2 − (4 − 2)/4 = 1.5' },
+    { id: 'r2', topic: 'roots', q: '구간 [0, 8]에서 이분법으로 오차 한계 0.5 이하가 되려면 최소 몇 번 반복해야 하는가?', ans: 4, tol: 0.001,
+      hint: '(b−a)/2ⁿ ≤ ε 를 만족하는 가장 작은 정수 n', exp: '8/2ⁿ ≤ 0.5 → 2ⁿ ≥ 16 → n = 4' },
+    { id: 'l1', topic: 'linear', q: '2x + y = 5, 4x + 3y = 11 에 가우스 소거법을 적용할 때 승수 m₂₁은?', ans: 2, tol: 0.001,
+      hint: 'm₂₁ = a₂₁ / a₁₁', exp: 'm₂₁ = 4/2 = 2' },
+    { id: 'l2', topic: 'linear', q: '2x + y = 5, 4x + 3y = 11 의 해 x를 구하시오.', ans: 2, tol: 0.001,
+      hint: 'R2 − 2·R1 로 x를 소거하면 y가 먼저 구해집니다.', exp: 'R2 − 2R1: y = 1 → 2x + 1 = 5 → x = 2 (검산: 4·2 + 3·1 = 11)' },
+    { id: 'i1', topic: 'interp', q: '두 점 (1, 3), (3, 7)을 이용한 선형 보간으로 x = 2 에서의 값을 구하시오.', ans: 5, tol: 0.001,
+      hint: 'y₀ + (y₁−y₀)/(x₁−x₀) · (x−x₀)', exp: '3 + (7−3)/(3−1) · (2−1) = 3 + 2 = 5' },
+    { id: 'i2', topic: 'interp', q: '절점 x₀=0, x₁=1, x₂=2 일 때 라그랑주 기저 L₁(1.5)의 값은? (분수 입력 가능: 예 3/4)', ans: 0.75, tol: 0.001,
+      hint: 'L₁(x) = (x−0)(x−2) / ((1−0)(1−2))', exp: 'L₁(1.5) = (1.5)(−0.5)/(1·(−1)) = 0.75' },
+    { id: 'c1', topic: 'calculus', q: 'f(x) = x³, x = 2, h = 0.5 일 때 중심 차분으로 f′(2)를 구하시오.', ans: 12.25, tol: 0.005,
+      hint: '(f(2.5) − f(1.5)) / (2h)', exp: '(15.625 − 3.375)/1 = 12.25 (참값 12)' },
+    { id: 'c2', topic: 'calculus', q: '∫₀¹ x² dx 를 n = 2 인 사다리꼴 공식으로 근사하시오.', ans: 0.375, tol: 0.0005,
+      hint: 'h = 0.5, f₀ = 0, f₁ = 0.25, f₂ = 1', exp: 'T = (0.5/2)[0 + 2(0.25) + 1] = 0.25 × 1.5 = 0.375' }
+  ];
+  var byId = {};
+  QUIZ.forEach(function (x) { byId[x.id] = x; });
+  var solved = {}, marked = {}, viewedEx = {}, stars = {};
+
+  // ---------- 점검 문제 렌더 ----------
+  document.querySelectorAll('.quiz').forEach(function (box) {
+    var topic = box.getAttribute('data-topic');
+    var h = document.createElement('h3'); h.textContent = '자가 점검 문제'; box.appendChild(h);
+    var p = document.createElement('p'); p.className = 'muted';
+    p.textContent = '숫자로 답을 입력하세요. 분수(예: 3/4)도 입력할 수 있습니다.'; box.appendChild(p);
+    QUIZ.filter(function (x) { return x.topic === topic; }).forEach(function (item, idx) {
+      var d = document.createElement('div'); d.className = 'q-item'; d.id = 'q-' + item.id;
+      var qt = document.createElement('div'); qt.className = 'qtext'; qt.textContent = '문제 ' + (idx + 1) + '. ' + item.q;
+      var row = document.createElement('div'); row.className = 'q-row';
+      var inp = document.createElement('input'); inp.type = 'text'; inp.inputMode = 'decimal';
+      inp.setAttribute('aria-label', '문제 ' + (idx + 1) + ' 답 입력'); inp.placeholder = '답 입력';
+      var chk = btn('확인', 'btn'), hint = btn('힌트', 'btn sub'), show = btn('해설 보기', 'btn sub'), mk = btn('🔖 다시 볼 문제', 'btn sub mark');
+      mk.setAttribute('aria-pressed', 'false');
+      row.appendChild(inp); row.appendChild(chk); row.appendChild(hint); row.appendChild(show); row.appendChild(mk);
+      var fb = document.createElement('div'); fb.className = 'feedback'; fb.setAttribute('aria-live', 'polite');
+      var ex = document.createElement('div'); ex.className = 'extra';
+      d.appendChild(qt); d.appendChild(row); d.appendChild(fb); d.appendChild(ex);
+      box.appendChild(d);
+
+      function setFb(t, c) { fb.textContent = t; fb.className = 'feedback ' + (c || ''); }
+      function check() {
+        var v = parseAns(inp.value);
+        if (v === 'empty') { setFb('답을 입력해 주세요.', 'info'); return; }
+        if (v === null) { setFb('숫자로 입력해 주세요. (예: 1.5 또는 3/4)', 'info'); return; }
+        if (Math.abs(v - item.ans) <= item.tol) {
+          solved[item.id] = true; d.classList.add('solved');
+          setFb('정답입니다! ✔', 'ok'); ex.textContent = '해설: ' + item.exp;
+        } else {
+          setFb('틀렸습니다. 힌트를 보고 다시 계산해 보세요. (다시 볼 문제에 추가됨)', 'bad');
+          setMark(item.id, true);
+        }
+        updateAll();
+      }
+      chk.addEventListener('click', check);
+      inp.addEventListener('keydown', function (e) { if (e.key === 'Enter') check(); });
+      hint.addEventListener('click', function () { ex.textContent = '힌트: ' + item.hint; });
+      show.addEventListener('click', function () { ex.textContent = '해설: ' + item.exp + ' (정답: ' + item.ans + ')'; });
+      mk.addEventListener('click', function () { setMark(item.id, !marked[item.id]); });
+    });
+  });
+  function btn(t, c) { var b = document.createElement('button'); b.type = 'button'; b.className = c; b.textContent = t; return b; }
+  function parseAns(s) {
+    s = String(s).trim().replace(/,/g, '.');
+    if (s === '') return 'empty';
+    var m = s.match(/^(-?\d+(?:\.\d+)?)\s*\/\s*(-?\d+(?:\.\d+)?)$/), v;
+    if (m) { v = parseFloat(m[2]) === 0 ? NaN : parseFloat(m[1]) / parseFloat(m[2]); }
+    else { v = /^-?\d*\.?\d+$/.test(s) ? Number(s) : NaN; }
+    return isFinite(v) ? v : null;
+  }
+  function setMark(id, on) {
+    if (on) marked[id] = true; else delete marked[id];
+    var b = document.querySelector('#q-' + id + ' .mark');
+    if (b) b.setAttribute('aria-pressed', on ? 'true' : 'false');
+    renderReview();
+  }
+  function renderReview() {
+    var list = document.getElementById('reviewList'); list.innerHTML = '';
+    var ids = QUIZ.filter(function (x) { return marked[x.id]; });
+    ids.forEach(function (x) {
+      var r = document.createElement('div'); r.className = 'review-item';
+      var s = document.createElement('span'); s.textContent = x.q;
+      var go = document.createElement('a'); go.href = '#q-' + x.id; go.textContent = '문제로 이동';
+      go.addEventListener('click', function () { clearFilters(); });
+      var rm = btn('제거', 'btn sub'); rm.addEventListener('click', function () { setMark(x.id, false); });
+      r.appendChild(s); r.appendChild(go); r.appendChild(rm); list.appendChild(r);
+    });
+    document.getElementById('reviewEmpty').style.display = ids.length ? 'none' : 'block';
+  }
+
+  // ---------- 예제 풀이 토글 ----------
+  document.querySelectorAll('.toggle').forEach(function (b) {
+    b.addEventListener('click', function () {
+      var box = document.getElementById(b.getAttribute('aria-controls'));
+      var open = box.hasAttribute('hidden');
+      if (open) { box.removeAttribute('hidden'); viewedEx[box.id] = true; } else { box.setAttribute('hidden', ''); }
+      b.setAttribute('aria-expanded', String(open));
+      b.textContent = open ? '풀이 접기' : '풀이 보기';
+      updateAll();
+    });
+  });
+
+  // ---------- 중요(★) 공식 ----------
+  document.querySelectorAll('.formula').forEach(function (f, i) {
+    f.setAttribute('data-fid', 'f' + i);
+    var s = document.createElement('button'); s.type = 'button'; s.className = 'star';
+    s.setAttribute('aria-pressed', 'false'); s.textContent = '☆ 중요';
+    s.addEventListener('click', function () {
+      var on = s.getAttribute('aria-pressed') !== 'true';
+      s.setAttribute('aria-pressed', on ? 'true' : 'false');
+      s.textContent = on ? '★ 중요' : '☆ 중요';
+      f.classList.toggle('starred', on);
+      if (on) stars['f' + i] = true; else delete stars['f' + i];
+      renderFavs();
+    });
+    f.appendChild(s);
+  });
+  function renderFavs() {
+    var list = document.getElementById('favList'); list.innerHTML = '';
+    var n = 0;
+    document.querySelectorAll('.formula').forEach(function (f) {
+      if (!stars[f.getAttribute('data-fid')]) return;
+      n++;
+      var d = document.createElement('div'); d.className = 'fav-item';
+      var tp = document.createElement('div'); tp.className = 'tp';
+      tp.textContent = f.closest('section.topic').querySelector('h2').textContent;
+      var nm = document.createElement('div'); nm.style.fontWeight = '700';
+      nm.textContent = f.querySelector('.name').textContent;
+      d.appendChild(tp); d.appendChild(nm);
+      f.querySelectorAll('.eq').forEach(function (e) { var c = document.createElement('div'); c.className = 'eq'; c.innerHTML = e.innerHTML; d.appendChild(c); });
+      list.appendChild(d);
+    });
+    document.getElementById('favEmpty').style.display = n ? 'none' : 'block';
+  }
+
+  // ---------- 검색 / 주제 선택 ----------
+  var topics = [].slice.call(document.querySelectorAll('section.topic'));
+  var chips = [].slice.call(document.querySelectorAll('.chip'));
+  var active = {};
+  var searchInput = document.getElementById('searchInput');
+  function applyFilter() {
+    var q = searchInput.value.trim().toLowerCase();
+    var keys = Object.keys(active), shown = 0;
+    topics.forEach(function (t) {
+      var okTopic = keys.length === 0 || active[t.id];
+      var okQ = !q || (t.getAttribute('data-keywords') + ' ' + t.textContent).toLowerCase().indexOf(q) !== -1;
+      var show = okTopic && okQ;
+      t.classList.toggle('is-hidden', !show);
+      if (show) shown++;
+    });
+    chips.forEach(function (c) {
+      var t = c.getAttribute('data-topic');
+      c.setAttribute('aria-pressed', String(t === 'all' ? keys.length === 0 : !!active[t]));
+    });
+    document.getElementById('emptyState').style.display = shown ? 'none' : 'block';
+    var msg = '주제 ' + shown + '개를 표시하고 있습니다.';
+    if (q) msg = '검색어 "' + searchInput.value.trim() + '" — ' + msg;
+    document.getElementById('filterMsg').textContent = (keys.length === 0 && !q) ? '전체 주제를 표시하고 있습니다.' : msg;
+  }
+  function clearFilters() { active = {}; searchInput.value = ''; applyFilter(); }
+  chips.forEach(function (c) {
+    c.addEventListener('click', function () {
+      var t = c.getAttribute('data-topic');
+      if (t === 'all') { active = {}; }
+      else if (active[t]) { delete active[t]; } else { active[t] = true; }
+      applyFilter();
+    });
+  });
+  searchInput.addEventListener('input', applyFilter);
+  document.querySelectorAll('nav.topnav a').forEach(function (a) {
+    a.addEventListener('click', function () {
+      var sec = document.getElementById(a.getAttribute('href').slice(1));
+      if (sec && sec.classList.contains('is-hidden')) clearFilters();
+    });
+  });
+
+  // ---------- 진행도 ----------
+  function updateAll() {
+    var ex = Object.keys(viewedEx).length, qz = Object.keys(solved).length;
+    document.getElementById('progText').textContent = '예제 확인 ' + ex + ' / 4 · 점검 문제 정답 ' + qz + ' / ' + QUIZ.length;
+    document.getElementById('progBar').style.width = ((ex + qz) / (4 + QUIZ.length) * 100) + '%';
+  }
+  var cks = [].slice.call(document.querySelectorAll('.ck'));
+  function updateCk() {
+    var n = cks.filter(function (c) { return c.checked; }).length;
+    document.getElementById('ckText').textContent = n + ' / ' + cks.length + ' 완료';
+    document.getElementById('ckBar').style.width = (n / cks.length * 100) + '%';
+    cks.forEach(function (c) { c.closest('.check-row').classList.toggle('checked', c.checked); });
+  }
+  cks.forEach(function (c) { c.addEventListener('change', updateCk); });
+  document.getElementById('ckReset').addEventListener('click', function () { cks.forEach(function (c) { c.checked = false; }); updateCk(); });
+
+  document.getElementById('toTop').addEventListener('click', function () { window.scrollTo({ top: 0, behavior: 'smooth' }); });
+
+  applyFilter(); renderFavs(); renderReview(); updateAll(); updateCk();
+})();
+</script>
+</body>
+</html>
